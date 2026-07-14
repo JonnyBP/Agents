@@ -3,40 +3,28 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from agent import Agent
 
-# Carga las variables del archivo .env
 load_dotenv()
 
-# Configuramos el cliente para que apunte a OpenRouter
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
     api_key=os.getenv("OPENROUTER_API_KEY")
 )
 
-messages = [
-    {"role": "system", "content":"Eres un asistente útil que habla español y eres muy conciso con tus respuestas"}
-]
+# Inicializamos nuestro agente autónomo
+agent = Agent(client=client, model="openrouter/free")
+
+print("🤖 Agente autónomo activo. Escribe 'salir' para terminar.\n")
 
 while True:
-
     user_input = input("Tú: ").strip()
 
-    #Validaciones
     if not user_input:
         continue
-    
     if user_input.lower() in ("salir", "exit", "bye"):
-        print("Hasta pronto")
+        print("Hasta pronto.")
         break
 
-    messages.append({"role": "user", "content": user_input})
-
-    response = client.chat.completions.create(
-        # En OpenRouter es buena práctica anteponer el proveedor o usar openrouter/free (Enrutador gratuito)
-        model="openrouter/free", 
-        messages = messages
-    )
-
-    # Para acceder al texto de la respuesta en el SDK actual
-    assitant_reply = response.choices[0].message.content
-    messages.append({"role": "assistant", "content": assitant_reply})
-    print(f"Asistente: {assitant_reply}")
+    # El agente procesa toda la cadena de pensamiento internamente y nos da el resultado listo
+    respuesta_final = agent.run(user_input)
+    
+    print(f"Asistente: {respuesta_final}\n")
